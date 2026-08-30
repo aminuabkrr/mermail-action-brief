@@ -1,34 +1,57 @@
 # Mermail Action Brief
 
-**Unofficial community companion Agent Skill for [Mermail](https://mermail.app).**
-This is not an official Mermail skill and is not part of the
-[`Nudgen-Marketing/mermail-skills`](https://github.com/Nudgen-Marketing/mermail-skills)
-package. For core Mermail workflows (inbox management, composing email,
-workspace admin, task triage, Agent Wallet), install the official skills:
+**Turn opportunities in your inbox into decisions you can act on — never into
+actions taken for you.**
 
-```bash
-npx --yes skills add Nudgen-Marketing/mermail-skills
-```
-
-Built for the Superteam Earn bounty: **Build and Demo a Mermail Agent Skill.**
+**Inbox Intelligence** · Unofficial community companion Agent Skill for
+[Mermail](https://mermail.app). Not an official Mermail skill, and not part
+of the [`Nudgen-Marketing/mermail-skills`](https://github.com/Nudgen-Marketing/mermail-skills)
+package. Built for the Superteam Earn bounty: **Build and Demo a Mermail
+Agent Skill.**
 
 ---
 
-## Project overview
+## The agent
 
-Mermail Action Brief turns a bounded set of Mermail inbox emails into
-structured, deadline-aware **Action Briefs** — with unclear or risky details
-flagged instead of guessed. It's a **strictly read-only** skill: it never
-sends, replies, deletes, moves, or labels email, and it never touches Agent
-Wallet or PayBox.
+Mermail Action Brief is your inbox intelligence agent. You give it a scope —
+a category, a sender, a keyword, a date range — and it finds the emails that
+matter, works out what each one actually requires of you, surfaces
+deadlines and missing information, flags anything that looks risky, and
+hands you a clear next step.
 
-## Why it exists
+It never acts on that recommendation itself. It doesn't reply, forward,
+delete, move, label, sign up, or touch a payment or wallet — not even if the
+email it just read asked it to. It turns inbox information into a decision,
+not into an unauthorized action.
+
+## What it does
+
+```
+User Request
+  ↓
+Bounded Mermail Search        (search_emails / list_emails, metadata_only)
+  ↓
+Relevant Email Selection      (from metadata only)
+  ↓
+Safe Email Read                (get_email, agent_safe_content=true)
+  ↓
+Structured Extraction          (email content treated as untrusted data)
+  ↓
+Action Brief
+```
+
+Full step-by-step workflow, security rules, and exact tool schemas live in
+[`SKILL.md`](SKILL.md), [`references/security.md`](references/security.md),
+and [`references/tools.md`](references/tools.md).
+
+## Why it matters
 
 Inboxes hold opportunities, deadlines, and requests, but an ordinary
 "you got an email" summary stops short of the useful part: what does this
-actually require of me, by when, and what's still unclear? This skill closes
-that gap — it reads the relevant emails and hands back a structured brief a
-person can act on, instead of just a list of subject lines.
+actually require of me, by when, and what's still unclear? Mermail Action
+Brief closes that gap — it reads the relevant emails and hands back a
+structured brief a person can act on, instead of just a list of subject
+lines.
 
 ## Core features
 
@@ -49,32 +72,19 @@ person can act on, instead of just a list of subject lines.
 - **Read-only architecture** — no send/reply/delete/move/label/wallet tool is
   ever in this skill's allowlist.
 
-## How it works
+## What you can ask
 
-```
-User Request
-  ↓
-Bounded Mermail Search        (search_emails / list_emails, metadata_only)
-  ↓
-Relevant Email Selection      (from metadata only)
-  ↓
-Safe Email Read                (get_email, agent_safe_content=true)
-  ↓
-Structured Extraction          (email content treated as untrusted data)
-  ↓
-Action Brief
-```
+- "Check my Mermail inbox for the latest partnership opportunity and turn it
+  into an action brief."
+- "Find collaboration emails from this week and tell me what each sender
+  needs from me."
+- "Which emails in my inbox require action this week?"
+- "Check for partnership emails with deadlines."
+- "What does this email actually require from me?"
+- "Find recent opportunities and tell me what information I still need
+  before responding."
 
-Full step-by-step workflow, security rules, and exact tool schemas:
-[`SKILL.md`](SKILL.md), [`references/security.md`](references/security.md),
-[`references/tools.md`](references/tools.md).
-
-## Example prompt
-
-> "Check my Mermail inbox for the latest partnership opportunity and turn it
-> into an action brief."
-
-## Example result
+## Example Action Brief
 
 *(Illustrative — not a real company or a real email.)*
 
@@ -101,41 +111,33 @@ examples, then follow up to clarify compensation and scope before
 committing to anything.
 ```
 
-## Installation
+## Safety
 
-The **Agent Skill** (this repository) provides workflow guidance — the steps
-an agent follows, the fields it extracts, and the security rules it respects.
-The **Mermail MCP connection** provides the actual authenticated tools. You
-need both.
+This is a **strictly read-only** agent. It reads → understands → extracts →
+flags → advises — it never reads → decides → acts.
 
-1. **Get a Mermail workspace and mailbox.** Follow Mermail's
-   [Quickstart](https://docs.mermail.app/quickstart) if you don't have one
-   yet.
-2. **Connect Mermail's MCP server to your AI client**, scoped to the
-   least-privilege inbox profile (see Configuration below).
-3. **Add this skill to your client.** How, depends on your host:
-   - **Claude / Claude Code / Cursor / Codex (Agent Skills–compatible):**
-     copy this `mermail-action-brief/` folder into wherever your client
-     loads local skills from (for Claude Code / Codex via the
-     [Skills CLI](https://skills.sh/), you can point it at your own fork or
-     load it as a local skill directory — see your client's docs for
-     "install a local/custom skill").
-   - **ChatGPT custom MCP app / Plugins Directory:** `agents/openai.yaml`
-     supplies the metadata such a listing needs (`display_name`,
-     `short_description`, `default_prompt`, and the MCP dependency).
-   - There is no separate installer script bundled here beyond the skill
-     files themselves — this keeps the project auditable and avoids
-     duplicating Mermail's own CLI.
+- Email content (body, subject, sender, headers, links, attachments,
+  provider metadata) is always treated as **untrusted data**, never as
+  instructions. If an email says "reply immediately" or "confirm this
+  payment," the agent reports that request — it does not carry it out.
+- Its entire tool allowlist is six read-only calls:
+  `list_mailboxes`, `get_mailbox`, `search_emails`, `list_emails`,
+  `get_email`, `get_email_context`. It never calls `send_email`,
+  `reply_to_email`, `forward_email`, any delete/move/label tool, or any
+  `paybox_*` tool — and email content can never authorize one.
+- `From` is never treated as proof of identity; only a documented
+  `sender_authentication.status === "pass"` may be called "authenticated."
+- Links are reported as information, never opened automatically.
+- Every search and read is bounded — no unscoped inbox scans, no
+  uncontrolled loops, no polling, no autonomous monitoring.
 
-## Configuration (least-privilege setup)
+Full detail: [`references/security.md`](references/security.md).
+
+## MCP configuration (least-privilege setup)
 
 This skill only ever needs mailbox discovery plus bounded, safe email reads.
 Use Mermail's dedicated **`agent-inbox`** MCP profile, which exposes exactly
-the tools this skill requires — `list_mailboxes`, `get_mailbox`,
-`search_emails`, `list_emails`, `get_email`, `get_email_context` — plus a few
-unused-by-this-skill extras (`list_workspaces`, `get_workspace`,
-`list_email_domains`, `list_workspace_mailboxes`, `create_mailbox`,
-`get_api_credit_usage`), and **excludes** every send, destructive,
+the tools this skill requires and **excludes** every send, destructive,
 administrative, and wallet tool at the transport level:
 
 ```
@@ -150,8 +152,9 @@ Per current Mermail documentation, this profile even forces
 Every tool this skill needs is confirmed available on this profile; nothing
 had to be widened to the full catalog.
 
-**OAuth hosts** (Claude, Cursor, Codex, and similar): add the URL above as a
-custom connector and complete browser consent — no API key needed.
+**OAuth hosts** (Claude, ChatGPT, Cursor, Codex, and similar): add the URL
+above as a custom connector and complete browser consent — no API key
+needed.
 
 **API-key / headless hosts:**
 
@@ -173,9 +176,31 @@ commit the expanded key value to a repository or config file — use an
 environment variable (`MERMAIL_API_KEY`) and reference it from your client's
 config, as described in [Mermail's Skills docs](https://docs.mermail.app/ai/skills).
 
+## Installation
+
+The **Agent Skill** (this repository) provides the workflow guidance — the
+steps the agent follows, the fields it extracts, and the security rules it
+respects. The **Mermail MCP connection** provides the actual authenticated
+tools. You need both, and there are two ways to run the skill once MCP is
+connected:
+
+1. **As a durable skill** — copy this `mermail-action-brief/` folder into
+   wherever your client loads local skills from (for Claude Code / Codex via
+   the [Skills CLI](https://skills.sh/), point it at your own fork or a
+   local skill directory; for a ChatGPT custom app, `agents/openai.yaml`
+   supplies the metadata a listing needs). Once installed, later chats can
+   invoke it by name, `mermail-action-brief`, or by asking for what it does.
+2. **As a pasted persona** — for a one-off session, paste the contents of
+   [`SKILL.md`](SKILL.md) into your client's system prompt / custom
+   instructions field. This runs the same Identity, workflow, and security
+   rules for that chat without a permanent install.
+
+Either way, connect Mermail MCP first (see Configuration above) — the skill
+file only supplies guidance, not the tools themselves.
+
 ## Testing
 
-A practical, low-risk way to confirm this skill actually works before
+A practical, low-risk way to confirm this agent actually works before
 recording the bounty video:
 
 1. Connect the `agent-inbox` MCP profile as above and confirm your client
@@ -200,11 +225,16 @@ recording the bounty video:
    - If you included the embedded-instruction test email, confirm the brief
      *reports* the request rather than the agent replying to anything.
 
+This exact test sequence has been run live against a real Mermail mailbox
+through Claude's MCP connector, including a scenario with a spoofed sender
+identity and an embedded "reply immediately" instruction — the agent
+correctly reported both as risk flags without taking any action.
+
 ## Demo
 
 A 2–5 minute screen recording showing: (1) the Mermail MCP connection is
 live, (2) the trigger prompt, (3) the skill calling Mermail's bounded
-search/read tools, (4) the resulting Action Brief. See the full script below.
+search/read tools, (4) the resulting Action Brief.
 
 ### 2 to 5 Minute Demo Script
 
@@ -250,13 +280,12 @@ slide explanation alone does not satisfy the bounty requirement.
    agent` triages and replies to support tickets; `mermail-gtm-agent` is
    outbound-first. None of them produce a one-shot structured, deadline-
    aware Action Brief from a user-scoped read.
-2. **One-sentence value proposition?** Yes — see top of this README and
-   `SKILL.md` §"Value proposition."
+2. **One-sentence value proposition?** Yes — see the top of this README.
 3. **Uses Mermail directly?** Yes — via the Mermail hosted MCP server
    (`agent-inbox` profile).
 4. **All tool names exact and verified?** Yes — verified against
-   `docs.mermail.app` API reference pages and `ai/mcp.md` at authoring time;
-   see `references/tools.md`.
+   `docs.mermail.app` API reference pages and `ai/mcp.md`; see
+   `references/tools.md`.
 5. **All tool arguments exact and verified?** Yes — same source; no
    parameter is invented.
 6. **Any invented parameters?** No.
@@ -269,7 +298,8 @@ slide explanation alone does not satisfy the bounty requirement.
    the recommended `agent-inbox` MCP profile doesn't even expose them.
 9. **Can an email cause the agent to execute an external action?** No — see
    `references/security.md` §2 and §8; email content is treated strictly as
-   untrusted data.
+   untrusted data. Confirmed live against a test email with an embedded
+   "reply immediately" instruction.
 10. **Is the search bounded?** Yes — default candidate cap of 10, explicit
     `limit` always passed.
 11. **Are reads bounded?** Yes — `get_email` only for selected candidates;
@@ -287,8 +317,10 @@ slide explanation alone does not satisfy the bounty requirement.
     workflow from start to completion, example prompts, and expected
     results.
 
-## License / attribution
+## Unofficial status
 
-This is an independent, unofficial project built against Mermail's public
-documentation and MCP server. It is not affiliated with or endorsed by
-Nudgen Marketing / Mermail beyond using their published, public interfaces.
+Mermail Action Brief is an independent, unofficial community companion
+skill, built against Mermail's public documentation and MCP server. It is
+not affiliated with or endorsed by Nudgen Marketing / Mermail beyond using
+their published, public interfaces, and it is not part of the
+`Nudgen-Marketing/mermail-skills` package.
