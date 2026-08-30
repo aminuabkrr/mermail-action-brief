@@ -1,6 +1,6 @@
 interface:
   display_name: "Mermail Action Brief"
-  short_description: "Turns scoped Mermail inbox emails into structured, deadline-aware action briefs — read-only."
+  short_description: "Your inbox intelligence agent — turns opportunities and requests into structured, deadline-aware briefs. Read-only: it never sends, replies, or touches Agent Wallet."
   default_prompt: "Use $mermail-action-brief to check my Mermail inbox for the latest partnership opportunity and turn it into an action brief."
 dependencies:
   tools:
