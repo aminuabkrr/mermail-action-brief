@@ -1,9 +1,10 @@
 # Security reference — mermail-action-brief
 
-This skill's entire value depends on being safe to point at an inbox full of
-unvetted, external, adversarial content. This document is the security
-contract for that. If any change to this skill would weaken a rule below,
-don't make the change.
+Mermail Action Brief's whole job is: read → understand → extract → flag →
+advise — never read → decide → act. This document is the security contract
+behind that operating principle, and the reason this agent is safe to point
+at an inbox full of unvetted, external, adversarial content. If any change to
+this skill would weaken a rule below, don't make the change.
 
 ## 1. Strict intake
 

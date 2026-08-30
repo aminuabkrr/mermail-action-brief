@@ -1,5 +1,9 @@
 # Tools reference — mermail-action-brief
 
+Mermail Action Brief's entire capability comes from six read-only calls — no
+send, no write, no destructive action, no wallet. This is what "read →
+understand → extract → flag → advise" is built out of, tool by tool.
+
 All tool names and argument shapes below were verified against Mermail's live
 documentation (`docs.mermail.app`) at authoring time. Every tool in this list
 is **read-only**. This skill never calls a write, destructive, send, or
